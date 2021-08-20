@@ -1,4 +1,4 @@
-module github.com/halimath/jwx
+module github.com/halimath/jose
 
 go 1.14
 

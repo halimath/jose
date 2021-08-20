@@ -1,6 +1,6 @@
-# jwx
+# jose
 
-An implementation of JWS/JWK/JWT for [Go](https://golang.org)
+An implementation of several _JSON Object Signature and Encryption_ (JOSE) specs for [Go](https://golang.org): JWS, JWK and JWT.
 
 ![CI Status][ci-img-url] [![Go Report Card][go-report-card-img-url]][go-report-card-url] [![Package Doc][package-doc-img-url]][package-doc-url] [![Releases][release-img-url]][release-url]
 
@@ -45,11 +45,19 @@ The following list summarizes the features provided by the this module.
 
 ## Installation
 
-Use `go get` to install the libary with your project. You need Go >= 1.14 to use the lib.
+Use `go get` to install the libary with your project. 
 
 ```
-$ go get github.com/halimath/jwx
+$ go get github.com/halimath/jose
 ```
+
+You need Go >= 1.14 to use the lib.
+
+The production code has no other dependencies but the Go standard library. It uses 
+`encoding/json` to do the marshaling/unmarshaling of JSON and uses several `crypto`
+packages. The only dependency declared in `go.mod` is the excellent
+[`github.com/go-test/deep`](https://github.com/go-test/deep) which is used in the
+unit tests.
 
 ## Usage
 
@@ -95,8 +103,8 @@ if err := tokenDecoded.Verify(jwt.Signature(sig), jwt.ExpirationTime(time.Second
 To run the code you need to add the following imports along with all the standard import:
 
 ```go
-"github.com/halimath/jwx/jws"
-"github.com/halimath/jwx/jwt"
+"github.com/halimath/jose/jws"
+"github.com/halimath/jose/jwt"
 ```
 
 A central type when using JWT is `jwt.Token`. A token is basically a `jws.JWS` which consists 
@@ -203,10 +211,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-[ci-img-url]: https://github.com/halimath/jwx/workflows/CI/badge.svg
-[go-report-card-img-url]: https://goreportcard.com/badge/github.com/halimath/jwx
-[go-report-card-url]: https://goreportcard.com/report/github.com/halimath/jwx
+[ci-img-url]: https://github.com/halimath/jose/workflows/CI/badge.svg
+[go-report-card-img-url]: https://goreportcard.com/badge/github.com/halimath/jose
+[go-report-card-url]: https://goreportcard.com/report/github.com/halimath/jose
 [package-doc-img-url]: https://img.shields.io/badge/GoDoc-Reference-blue.svg
-[package-doc-url]: https://pkg.go.dev/github.com/halimath/jwx
-[release-img-url]: https://img.shields.io/github/v/release/halimath/jwx.svg
-[release-url]: https://github.com/halimath/jwx/releases
+[package-doc-url]: https://pkg.go.dev/github.com/halimath/jose
+[release-img-url]: https://img.shields.io/github/v/release/halimath/jose.svg
+[release-url]: https://github.com/halimath/jose/releases

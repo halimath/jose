@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/halimath/jwx/jws"
+	"github.com/halimath/jose/jws"
 )
 
 // Verifier defines the interface for types that verify validity of a

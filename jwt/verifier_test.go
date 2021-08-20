@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/halimath/jwx/jws"
+	"github.com/halimath/jose/jws"
 )
 
 func TestVerifyIssuer(t *testing.T) {

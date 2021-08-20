@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/halimath/jwx/internal/encoding"
+	"github.com/halimath/jose/internal/encoding"
 )
 
 var (

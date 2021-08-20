@@ -11,8 +11,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/halimath/jwx/jws"
-	"github.com/halimath/jwx/jwt"
+	"github.com/halimath/jose/jws"
+	"github.com/halimath/jose/jwt"
 )
 
 func Example_standardClaimsWithHS256() {

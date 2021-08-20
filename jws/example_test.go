@@ -3,7 +3,7 @@ package jws_test
 import (
 	"fmt"
 
-	"github.com/halimath/jwx/jws"
+	"github.com/halimath/jose/jws"
 )
 
 func Example() {

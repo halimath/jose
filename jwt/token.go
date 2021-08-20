@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/halimath/jwx/jws"
+	"github.com/halimath/jose/jws"
 )
 
 var (

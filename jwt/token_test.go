@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/go-test/deep"
-	"github.com/halimath/jwx/jws"
+	"github.com/halimath/jose/jws"
 )
 
 func TestStandardClaims_marshalling(t *testing.T) {

@@ -3,7 +3,7 @@ package jwk
 import (
 	"crypto/ecdsa"
 
-	"github.com/halimath/jwx/internal/encoding"
+	"github.com/halimath/jose/internal/encoding"
 )
 
 // var supportedCurves = map[string]elliptic.Curve{
