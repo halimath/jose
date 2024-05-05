@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
 
 jobs:
@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        go: ['1.14', '1.15', '1.16']
+        go: ['1.18', '1.19', '1.20', '1.21', '1.22']
     env:
       VERBOSE: 1
       GOFLAGS: -mod=readonly
@@ -21,12 +21,12 @@ jobs:
 
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go }}
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Test
         run: go test -cover ./...
