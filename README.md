@@ -51,7 +51,7 @@ Use `go get` to install the libary with your project.
 $ go get github.com/halimath/jose
 ```
 
-You need Go >= 1.14 to use the lib.
+You need Go >= 1.18 to use the lib.
 
 The production code has no other dependencies but the Go standard library. It uses 
 `encoding/json` to do the marshaling/unmarshaling of JSON and uses several `crypto`
