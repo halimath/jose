@@ -66,8 +66,8 @@ func NotBefore(leeway time.Duration) Verifier {
 			return fmt.Errorf("token is missing nbf")
 		}
 
-		now := time.Now().Add(-leeway)
-		if sc.GetNotBefore().After(now) {
+		delta := time.Until(sc.GetNotBefore())
+		if delta > leeway {
 			return fmt.Errorf("token used before nbf: %s", sc.GetNotBefore().Format(time.RFC3339))
 		}
 
@@ -85,9 +85,7 @@ func ExpirationTime(leeway time.Duration) Verifier {
 			return fmt.Errorf("token is missing exp")
 		}
 
-		now := time.Now().Add(leeway)
-
-		if sc.GetExpirationTime().Before(now) {
+		if time.Since(sc.GetExpirationTime()) > leeway {
 			return fmt.Errorf("token used after exp: %s", sc.GetExpirationTime().Format(time.RFC3339))
 		}
 
