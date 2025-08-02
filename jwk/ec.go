@@ -29,7 +29,7 @@ func (e *ECDSAPublicKey) Type() KeyType {
 	return KeyTypeEC
 }
 
-func (e *ECDSAPublicKey) marshalJSON(data map[string]interface{}) error {
+func (e *ECDSAPublicKey) marshalJSON(data map[string]any) error {
 	data[ParamKeyType] = e.Type()
 
 	e.KeyDescription.marshalJSON(data)

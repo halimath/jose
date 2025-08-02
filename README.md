@@ -112,9 +112,9 @@ of a JOSE-header, a payload and a signature. In case of a `jwt.Token`, additiona
 provided to interact with the payload which is known to be valid JSON. To create a `jwt.Token`
 you can use one of the two functions:
 
-* `jwt.Sign` which creates a token by applying a signer to the claims
+* `jwt.Sign` which creates a token by applying a signature to the claims
 * `jwt.Decode` which decodes a token from its _compact serialization_ which is the form most
-  people associate with a JWT: three base64 encoded strings separated by dots.
+  people associate with a JWT: three base64url encoded strings separated by dots.
 
 Note that a decoded token is _not_ verified. This is a design intention which simplifies using
 tokens which are known to be valid and safe to use. Decoding simply makes sure, that the given
@@ -197,7 +197,7 @@ which uses `encoding/json` under the hood.
 
 ## License
 
-Copyright 2021 Alexander Metzner
+Copyright 2021-2025 Alexander Metzner
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

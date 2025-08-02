@@ -36,7 +36,10 @@ func Signature(signatureVerifier jws.Verifier) Verifier {
 // Issuer returns a verifier that verifies the issuer for a given value.
 func Issuer(issuer string) Verifier {
 	return VerifierFunc(func(token *Token) error {
-		iss := token.StandardClaims().Issuer
+		iss, err := token.claims.GetString(ClaimIssuer)
+		if err != nil {
+			return fmt.Errorf("invalid issuer: %v", err)
+		}
 		if iss != issuer {
 			return fmt.Errorf("invalid issuer: %s", iss)
 		}
@@ -47,12 +50,22 @@ func Issuer(issuer string) Verifier {
 // Audience returns a verifier that verifies whether the audience claim contains a given value.
 func Audience(audience string) Verifier {
 	return VerifierFunc(func(token *Token) error {
-		for _, aud := range token.StandardClaims().Audience {
+		aud, err := token.claims.GetStringSlice(ClaimAudience)
+		if err != nil {
+			return fmt.Errorf("error verifying aud: %v", err)
+		}
+
+		if len(aud) == 0 {
+			return fmt.Errorf("token is missing aud claim")
+		}
+
+		for _, aud := range aud {
 			if aud == audience {
 				return nil
 			}
 		}
-		return fmt.Errorf("missing audience: %s", audience)
+
+		return fmt.Errorf("missing required audience: %s", audience)
 	})
 }
 
@@ -61,14 +74,18 @@ func Audience(audience string) Verifier {
 // If the token does not carry a not before claim, this verifier rejects the token.
 func NotBefore(leeway time.Duration) Verifier {
 	return VerifierFunc(func(token *Token) error {
-		sc := token.StandardClaims()
-		if sc.NotBefore == 0 {
+		notBefore, err := token.claims.GetTime(ClaimNotBefore)
+		if err != nil {
+			return fmt.Errorf("error verifying nbf: %v", err)
+		}
+
+		if notBefore.IsZero() {
 			return fmt.Errorf("token is missing nbf")
 		}
 
-		delta := time.Until(sc.GetNotBefore())
+		delta := time.Until(notBefore)
 		if delta > leeway {
-			return fmt.Errorf("token used before nbf: %s", sc.GetNotBefore().Format(time.RFC3339))
+			return fmt.Errorf("token used before nbf: %s", notBefore.Format(time.RFC3339))
 		}
 
 		return nil
@@ -80,13 +97,17 @@ func NotBefore(leeway time.Duration) Verifier {
 // If the token does not carry a expiration time claim, this verifier rejects the token.
 func ExpirationTime(leeway time.Duration) Verifier {
 	return VerifierFunc(func(token *Token) error {
-		sc := token.StandardClaims()
-		if sc.ExpirationTime == 0 {
+		exp, err := token.claims.GetTime(ClaimExpirationTime)
+		if err != nil {
+			return fmt.Errorf("verification of exp failed: %v", err)
+		}
+
+		if exp.IsZero() {
 			return fmt.Errorf("token is missing exp")
 		}
 
-		if time.Since(sc.GetExpirationTime()) > leeway {
-			return fmt.Errorf("token used after exp: %s", sc.GetExpirationTime().Format(time.RFC3339))
+		if time.Since(exp) > leeway {
+			return fmt.Errorf("token used after exp: %s", exp.Format(time.RFC3339))
 		}
 
 		return nil
@@ -98,13 +119,17 @@ func ExpirationTime(leeway time.Duration) Verifier {
 // rejects the token.
 func MaxAge(maxAge time.Duration) Verifier {
 	return VerifierFunc(func(token *Token) error {
-		sc := token.StandardClaims()
-		if sc.IssuedAt == 0 {
+		iat, err := token.claims.GetTime(ClaimIssuedAt)
+		if err != nil {
+			return fmt.Errorf("verification of iat failed: %v", err)
+		}
+
+		if iat.IsZero() {
 			return fmt.Errorf("token is missing iat")
 		}
 
-		if sc.GetIssuedAt().Before(time.Now().Add(-maxAge)) {
-			return fmt.Errorf("token too old: %s", sc.GetIssuedAt().Format(time.RFC3339))
+		if iat.Before(time.Now().Add(-maxAge)) {
+			return fmt.Errorf("token too old: %s", iat.Format(time.RFC3339))
 		}
 
 		return nil

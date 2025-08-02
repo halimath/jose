@@ -6,18 +6,8 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/sha512"
+	"fmt"
 	"hash"
-)
-
-const (
-	// RSASSA-PKCS1-v1_5 using SHA-256
-	ALG_RS256 SignatureAlgorithm = "RS256"
-
-	// RSASSA-PKCS1-v1_5 using SHA-384
-	ALG_RS384 SignatureAlgorithm = "RS384"
-
-	// RSASSA-PKCS1-v1_5 using SHA-512
-	ALG_RS512 SignatureAlgorithm = "RS512"
 )
 
 // rsaSigner implements a signature signer using an RSASSA-PKCS1-v1_5 algorithm with
@@ -91,6 +81,22 @@ func (r *rsaVerifier) Verify(alg SignatureAlgorithm, data, signature []byte) err
 	h.Write(data)
 	hashed := h.Sum(nil)
 	return rsa.VerifyPKCS1v15(r.publicKey, r.h, hashed, signature)
+}
+
+// RSVerifier creates a new Verifier for RSA based signatures using alg as the
+// algorithm and publicKey as the public key. If algs does not denote a supported
+// RSA algorithm (i.e. HS256 or ES256) a non-nil error is retured.
+func RSVerifier(alg SignatureAlgorithm, publicKey *rsa.PublicKey) (Verifier, error) {
+	switch alg {
+	case ALG_RS256:
+		return RS256Verifier(publicKey), nil
+	case ALG_RS384:
+		return RS384Verifier(publicKey), nil
+	case ALG_RS512:
+		return RS512Verifier(publicKey), nil
+	default:
+		return nil, fmt.Errorf("unsupported RSA signature algorithm: %s", alg)
+	}
 }
 
 // RS256Verifier creates a Verifier for RS256 as defined in RFC 7518 section 3.3

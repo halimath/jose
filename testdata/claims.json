@@ -1,0 +1,11 @@
+{
+    "jti": "125373AD-5F39-4ECF-B328-9489C8F433FC",
+    "aud": "github.com/halimath/jose",
+    "iss": "github.com/halimath/jose",
+    "sub": "john.d",
+    "iat": 1752594075,
+    "nbf": 1752594095,
+    "exp": 1910360501,
+    "github.com/halimath/jose#name": "John Doe",
+    "github.com/halimath/jose#is_admin": true
+}

@@ -89,7 +89,7 @@ func Example_customClaimsWithHS256() {
 	}
 
 	var c Claims
-	if err := token2.Claims(&c); err != nil {
+	if err := token2.UnmarshalClaims(&c); err != nil {
 		panic(err)
 	}
 

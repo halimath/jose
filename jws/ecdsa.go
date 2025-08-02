@@ -10,17 +10,6 @@ import (
 	"math/big"
 )
 
-const (
-	// ECDSA using P-256 and SHA-256
-	ALG_ES256 SignatureAlgorithm = "ES256"
-
-	// ECDSA using P-384 and SHA-384
-	ALG_ES384 SignatureAlgorithm = "ES384"
-
-	// ECDSA using P-521 and SHA-512
-	ALG_ES512 SignatureAlgorithm = "ES512"
-)
-
 // ecdsaSigner implements a signature signer using an ECDSA algorithm with
 // SHA-2 based hashing as defined in RFC 7518 section 3.4
 // (https://www.rfc-editor.org/rfc/rfc7518.html#section-3.4)
@@ -136,6 +125,18 @@ func (e *ecdsaVerifier) Verify(alg SignatureAlgorithm, data, signature []byte) e
 	}
 
 	return nil
+}
+
+// ESVerifier creates a verifier for the ECDSA based algorithm alg and public key.
+func ESVerifier(alg SignatureAlgorithm, publicKey *ecdsa.PublicKey) (Verifier, error) {
+	switch alg {
+	case ALG_ES256:
+		return ES256Verifier(publicKey)
+	case ALG_ES512:
+		return ES512Verifier(publicKey)
+	default:
+		return nil, fmt.Errorf("unsupported ECDSA signature algorithm: %s", alg)
+	}
 }
 
 // ES256Verifier creates a Verifier verifying ECDSA using P-256 and SHA-256

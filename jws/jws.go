@@ -150,8 +150,9 @@ func DecodeHeader(encoded string) (*Header, error) {
 // of this struct represent the different components of a JWS in
 // multiple ways. Once created a JWS is immutable. A JWS may only
 // be created through functions exposed from this package, i.e.
-// 		func Sign(signatureMethod SignatureMethod, payload []byte, header Header) JWS
-// 		func ParseCompact(compact string) (*JWS, error)
+//
+//	func Sign(signatureMethod SignatureMethod, payload []byte, header Header) JWS
+//	func ParseCompact(compact string) (*JWS, error)
 type JWS struct {
 	header           Header
 	headerEncoded    string
@@ -166,10 +167,23 @@ func (j *JWS) Header() Header {
 	return j.header
 }
 
+// HeaderBytes returns the decoded but unparsed bytes of the header.
+func (j *JWS) HeaderBytes() []byte {
+	d, _ := encoding.Decode(j.headerEncoded)
+	return d
+}
+
 // Payload returns a deep copy of j's payload.
 func (j *JWS) Payload() []byte {
 	b := make([]byte, len(j.payload))
 	copy(b, j.payload)
+	return b
+}
+
+// SignatureBytes returns the decoded signature bytes of j.
+func (j *JWS) SignatureBytes() []byte {
+	b := make([]byte, len(j.signature))
+	copy(b, j.signature)
 	return b
 }
 
@@ -188,7 +202,7 @@ var (
 // Verify verifies that the signature t carries has zero length.
 func (j *JWS) VerifySignature(verifier Verifier) error {
 	if err := verifier.Verify(j.header.Algorithm, []byte(j.headerEncoded+"."+j.payloadEncoded), j.signature); err != nil {
-		return fmt.Errorf("%w: invalid signature bytes", ErrInvalidSignature)
+		return err
 	}
 
 	return nil
@@ -222,8 +236,8 @@ func Sign(signer Signer, payload []byte, header Header) (*JWS, error) {
 // the JOSE header JSON. The signature ist NOT verified. Use Verify to perform the verification.
 func ParseCompact(compact string) (*JWS, error) {
 	parts := strings.Split(compact, ".")
-	if len(parts) != 3 {
-		return nil, fmt.Errorf("%w: invalid number of encoded parts", ErrInvalidCompactJWS)
+	if len(parts) < 2 {
+		return nil, fmt.Errorf("%w: invalid number of encoded parts: %d", ErrInvalidCompactJWS, len(parts))
 	}
 
 	header, err := DecodeHeader(parts[0])
@@ -254,6 +268,60 @@ func ParseCompact(compact string) (*JWS, error) {
 // SignatureAlgorithm defines the type used to name algorithms creating
 // digital signature including MACs.
 type SignatureAlgorithm string
+
+const (
+	// The none signature algorithm according to RFC 7618, section 3.6
+	// (https://www.rfc-editor.org/rfc/rfc7518.html#section-3.6)
+	ALG_NONE SignatureAlgorithm = "none"
+
+	// HMAC using SHA2 w/ 256bit
+	ALG_HS256 SignatureAlgorithm = "HS256"
+
+	// HMAC using SHA2 w/ 384bit
+	ALG_HS384 SignatureAlgorithm = "HS384"
+
+	// HMAC using SHA2 w/ 512bit
+	ALG_HS512 SignatureAlgorithm = "HS512"
+
+	// ECDSA using P-256 and SHA-256
+	ALG_ES256 SignatureAlgorithm = "ES256"
+
+	// ECDSA using P-384 and SHA-384
+	ALG_ES384 SignatureAlgorithm = "ES384"
+
+	// ECDSA using P-521 and SHA-512
+	ALG_ES512 SignatureAlgorithm = "ES512"
+
+	// RSASSA-PKCS1-v1_5 using SHA-256
+	ALG_RS256 SignatureAlgorithm = "RS256"
+
+	// RSASSA-PKCS1-v1_5 using SHA-384
+	ALG_RS384 SignatureAlgorithm = "RS384"
+
+	// RSASSA-PKCS1-v1_5 using SHA-512
+	ALG_RS512 SignatureAlgorithm = "RS512"
+)
+
+// UsesSymmetricKey returns true, if s uses the same secret for
+// signing and verification.
+func (s SignatureAlgorithm) UsesSymmetricSecret() bool {
+	switch s {
+	case ALG_HS256, ALG_HS384, ALG_HS512:
+		return true
+	default:
+		return false
+	}
+}
+
+// UsesEllipticCurves returns true if s utilizes elliptic curve cryptography.
+func (s SignatureAlgorithm) UsesEllipticCurves() bool {
+	switch s {
+	case ALG_ES256, ALG_ES384, ALG_ES512:
+		return true
+	default:
+		return false
+	}
+}
 
 // Signer defines the interface for types implementing
 // a given signature method for signing byte slices.
@@ -289,7 +357,7 @@ type symmetricSignature struct {
 
 func (s *symmetricSignature) Verify(alg SignatureAlgorithm, data []byte, signature []byte) error {
 	if alg != s.Alg() {
-		return ErrInvalidSignature
+		return fmt.Errorf("%w: signature algorithms do not match: %s vs. %s", ErrInvalidSignature, s.Alg(), alg)
 	}
 
 	sig, err := s.Sign(data)
@@ -298,7 +366,7 @@ func (s *symmetricSignature) Verify(alg SignatureAlgorithm, data []byte, signatu
 	}
 
 	if !bytes.Equal(sig, signature) {
-		return ErrInvalidSignature
+		return fmt.Errorf("%w: signature bytes do not match expected bytes", ErrInvalidSignature)
 	}
 	return nil
 }
@@ -311,10 +379,6 @@ func SymmetricSignature(s Signer) SignerVerifier {
 }
 
 // --
-
-const (
-	ALG_NONE SignatureAlgorithm = "none"
-)
 
 // None returns a signature method that creates no signature.
 // Use this method to create unsecured JWTs as specified in
