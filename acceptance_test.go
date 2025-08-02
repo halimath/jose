@@ -123,7 +123,7 @@ func TestVerifyJWT(t *testing.T) {
 		for _, alg := range algs {
 			t.Run(string(alg), func(t *testing.T) {
 				// TODO: Replace key loading with JWK related stuff once implemented
-				publicKeyBytes, err := os.ReadFile(fmt.Sprintf("./testdata/%s.public.pem", alg))
+				publicKeyBytes, err := os.ReadFile(fmt.Sprintf("./testdata/%s.public.pem", strings.ToLower(string(alg))))
 				if err != nil {
 					t.Fatal(err)
 				}
