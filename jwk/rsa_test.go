@@ -1,8 +1,7 @@
 package jwk
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
+	"crypto/rsa"
 	"encoding/json"
 	"math/big"
 	"testing"
@@ -10,20 +9,19 @@ import (
 	"github.com/go-test/deep"
 )
 
-func TestECDSAPublicKey_JSONSerialization(t *testing.T) {
-	const jsonData = `{"use":"sig","kid":"1","kty":"EC","crv":"P-256","x":"AQ","y":"Ag"}`
+func TestRSAPublicKey_JSONSerialization(t *testing.T) {
+	const jsonData = `{"use":"sig","kid":"1","kty":"RSA","n":"AQ","e":"Ag"}`
 
 	t.Run("marshal", func(t *testing.T) {
 
-		pk := &ECDSAPublicKey{
+		pk := &RSAPublicKey{
 			KeyDescription: KeyDescription{
 				KeyUse: UseSignature,
 				KeyID:  "1",
 			},
-			PublicKey: &ecdsa.PublicKey{
-				Curve: elliptic.P256(),
-				X:     big.NewInt(1),
-				Y:     big.NewInt(2),
+			PublicKey: &rsa.PublicKey{
+				N: big.NewInt(1),
+				E: 2,
 			},
 		}
 
@@ -38,21 +36,20 @@ func TestECDSAPublicKey_JSONSerialization(t *testing.T) {
 	})
 
 	t.Run("unmarshal", func(t *testing.T) {
-		var pk ECDSAPublicKey
+		var pk RSAPublicKey
 
 		if err := json.Unmarshal([]byte(jsonData), &pk); err != nil {
 			t.Fatal(err)
 		}
 
-		want := ECDSAPublicKey{
+		want := RSAPublicKey{
 			KeyDescription: KeyDescription{
 				KeyUse: UseSignature,
 				KeyID:  "1",
 			},
-			PublicKey: &ecdsa.PublicKey{
-				Curve: elliptic.P256(),
-				X:     big.NewInt(1),
-				Y:     big.NewInt(2),
+			PublicKey: &rsa.PublicKey{
+				N: big.NewInt(1),
+				E: 2,
 			},
 		}
 

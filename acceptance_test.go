@@ -1,6 +1,7 @@
 package jose_test
 
 import (
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/x509"
@@ -11,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/halimath/jose/jwk"
 	"github.com/halimath/jose/jws"
 	"github.com/halimath/jose/jwt"
 )
@@ -23,9 +25,15 @@ func TestVerifyJWT(t *testing.T) {
 			jws.ALG_HS512,
 		}
 
-		secret, err := os.ReadFile("./testdata/secret")
+		secretData, err := os.ReadFile("./testdata/secret.json")
 		if err != nil {
 			t.Fatal(err)
+		}
+		key, err := jwk.UnmarshalKey(secretData)
+
+		symmertricKey, ok := key.(*jwk.SymmetricKey)
+		if !ok {
+			t.Fatalf("not a symmertric key: %v", key)
 		}
 
 		for _, alg := range algs {
@@ -40,7 +48,7 @@ func TestVerifyJWT(t *testing.T) {
 					t.Fatal(err)
 				}
 
-				signerVerifier, err := jws.HSSignerVerifier(alg, secret)
+				signerVerifier, err := jws.HSSignerVerifier(alg, symmertricKey.Bytes)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -67,19 +75,9 @@ func TestVerifyJWT(t *testing.T) {
 		}
 
 		// TODO: Replace key loading with JWK related stuff once implemented
-		publicKeyBytes, err := os.ReadFile("./testdata/rsa.public.pem")
-		if err != nil {
+		var publicKey *rsa.PublicKey
+		if err := loadPublicKey("./testdata/rsa.public.pem", &publicKey); err != nil {
 			t.Fatal(err)
-		}
-
-		block, _ := pem.Decode(publicKeyBytes)
-		pubInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
-		if err != nil {
-			t.Fatal(err)
-		}
-		publicKey, ok := pubInterface.(*rsa.PublicKey)
-		if !ok {
-			t.Fatalf("not a RSA public key: %+v", pubInterface)
 		}
 
 		for _, alg := range algs {
@@ -123,19 +121,9 @@ func TestVerifyJWT(t *testing.T) {
 		for _, alg := range algs {
 			t.Run(string(alg), func(t *testing.T) {
 				// TODO: Replace key loading with JWK related stuff once implemented
-				publicKeyBytes, err := os.ReadFile(fmt.Sprintf("./testdata/%s.public.pem", strings.ToLower(string(alg))))
-				if err != nil {
+				var publicKey *ecdsa.PublicKey
+				if err := loadPublicKey(fmt.Sprintf("./testdata/%s.public.pem", strings.ToLower(string(alg))), &publicKey); err != nil {
 					t.Fatal(err)
-				}
-
-				block, _ := pem.Decode(publicKeyBytes)
-				pubInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
-				if err != nil {
-					t.Fatal(err)
-				}
-				publicKey, ok := pubInterface.(*ecdsa.PublicKey)
-				if !ok {
-					t.Fatalf("not a ECDSA public key: %+v", pubInterface)
 				}
 
 				compact, err := os.ReadFile("./testdata/jwt." + strings.ToLower(string(alg)))
@@ -167,5 +155,24 @@ func TestVerifyJWT(t *testing.T) {
 			})
 		}
 	})
+}
 
+func loadPublicKey[K crypto.PublicKey](filename string, publicKey **K) error {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+
+	block, _ := pem.Decode(data)
+	pubInterface, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return err
+	}
+	var ok bool
+	*publicKey, ok = pubInterface.(*K)
+	if !ok {
+		return fmt.Errorf("public key is not of type %T: %v", publicKey, pubInterface)
+	}
+
+	return nil
 }
